@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# Flask
+instance/
+.flaskenv
+
+# Database (runtime scan history — regenerated automatically)
+database/scans.db
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Environment variables
+.env

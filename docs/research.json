@@ -1,0 +1,19 @@
+{
+  "paper": {
+    "title": "Improving Web Security through Machine Learning: A Feature-Based Methodology for Detecting Phishing URLs",
+    "authors": "Reem Alzubi, Tariq Bishtawi, Hassan Kassem",
+    "venue": "Engineering, Technology & Applied Science Research (ETASR), 15(5), 26845\u201326851, 2025",
+    "doi": "10.48084/etasr.12015",
+    "url": "https://doi.org/10.48084/etasr.12015"
+  },
+  "key_idea": "The paper benchmarks Random Forest against Decision Tree, SVM, and XGBoost classifiers on lexical, host-based, and content-based URL features, and finds that ensemble methods -- particularly Random Forest -- consistently outperform individual and linear classifiers for phishing URL detection.",
+  "research_gap": "The paper reports strong aggregate accuracy metrics, but like most classic phishing-ML papers it does not give an end user or analyst any way to see which features drove an individual prediction, and it does not ship an interactive tool a non-technical person could use to check a suspicious link in real time.",
+  "how_this_extends_it": "PhishGuard AI implements the paper's core methodology (URL feature extraction feeding a Random Forest classifier, benchmarked against a linear baseline) using a 20-feature lexical-only subset chosen for zero network dependency and near-instant predictions. It closes the paper's explainability gap by wrapping every prediction in a SHAP TreeExplainer that produces threshold-aware, plain-English reasons, and packages the whole pipeline as a live, deployable dashboard rather than an offline experiment.",
+  "future_work": [
+    "Add the paper's host-based and content-based feature families (WHOIS/domain age, DNS records, page HTML analysis) behind an optional 'deep scan' toggle to approach the paper's reported accuracy ceiling.",
+    "Replace SQLite with a managed Postgres instance for durable scan history across deployments.",
+    "Package the analysis endpoint as a browser extension for real-time link checking.",
+    "Track prediction drift over time as phishing URL patterns evolve, with scheduled retraining.",
+    "Cross-check flagged URLs against live threat-intelligence feeds (PhishTank, OpenPhish) as an additional signal alongside VirusTotal."
+  ]
+}
