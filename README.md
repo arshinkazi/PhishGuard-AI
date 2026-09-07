@@ -1,5 +1,5 @@
 # PhishGuard AI
-### Research-Based Hybrid AI Phishing Detection System - v2
+### Research-Based Hybrid AI Phishing Detection System
 
 PhishGuard AI classifies a pasted URL as **phishing** or **legitimate** using
 a Random Forest model trained on 20 lexical (URL-string-only) features,
@@ -9,14 +9,16 @@ VirusTotal reputation data. Built as a resume-ready project for the IBM
 PBEL Cybersecurity Internship, then upgraded into a more complete,
 production-shaped v2.
 
-![Dashboard mockup](docs/screenshots/dashboard_mockup.png)
+[**Live Demo**](https://phishguard-ai-l27o.onrender.com/)
+
+![PhishGuard AI dashboard](docs/screenshots/dashboard_mockup.png)
 
 
 ---
 
 ## 1. Features
 
-- **20-feature lexical URL analysis** — length, structure, entropy, ratios,
+- **20-feature lexical URL analysis** - length, structure, entropy, ratios,
   token stats, TLD reputation, and more (§9), computed with zero network
   calls.
 - **Random Forest classifier** (86.5% accuracy, 0.939 ROC-AUC) benchmarked
@@ -34,23 +36,35 @@ production-shaped v2.
   this README.
 - **SOC-style dashboard** - threat gauge, verdict card, "URL autopsy"
   character-level breakdown, recent-activity stats, scan history, model
-  dossier, and dataset statistics — custom HTML/CSS/JS, no frameworks.
-- **SQLite scan history** - basic rate limiting, blocked-scheme validation,
+  dossier, and dataset statistics - custom HTML/CSS/JS, no frameworks.
+- **SQLite scan history**, basic rate limiting, blocked-scheme validation,
   and graceful degradation everywhere a live network call could fail.
 
 ## 2. Screenshots
 
-`docs/screenshots/dashboard_mockup.png` 
+### Dashboard
 
-1. **Exhibit intake** - the URL scan bar.
-2. **Recent activity** -session-level scan counters.
-3. **Verdict card** - risk gauge, badge, confidence, and one-line summary.
-4. **Exhibit A: URL autopsy** - annotated character breakdown.
-5. **Exhibit B: extracted signals** - all 20 feature values.
-6. **Exhibit C: SHAP explanation bars**.
-7. **Domain intelligence + VirusTotal** - supplementary, clearly separated.
-8. **Scan history (case log)**, **model dossier**, **dataset statistics**,
-   and a collapsible **research background** panel.
+![PhishGuard AI dashboard](docs/screenshots/dashboard_mockup.png)
+
+### URL Analysis
+
+<!-- Upload as: docs/screenshots/url-analysis.png -->
+
+### Model Explanation
+
+<!-- Upload as: docs/screenshots/model-explanation.png -->
+
+### Domain Information
+
+<!-- Upload as: docs/screenshots/domain-information.png -->
+
+### VirusTotal Results
+
+<!-- Upload as: docs/screenshots/virustotal-results.png -->
+
+### Scan History
+
+<!-- Upload as: docs/screenshots/scan-history.png -->
 
 ## 3. Installation Guide
 
@@ -190,7 +204,7 @@ record.
 
 ## 8. Dataset
 
-`datasets/phishing_dataset_raw.csv` — 11,430 real URLs (5,715 phishing /
+`datasets/phishing_dataset_raw.csv` - 11,430 real URLs (5,715 phishing /
 5,715 legitimate, perfectly balanced), from the raw `url,status` columns of:
 
 > Hannousse, A. & Yahiouche, S. (2021). "Towards benchmark datasets for
@@ -201,7 +215,7 @@ PhishGuard AI re-derives its own 20-feature lexical vector from the raw URL
 strings rather than using the dataset's original 87 pre-computed columns
 (most of which require live WHOIS/DNS/page-content lookups), to keep
 predictions instant and offline-safe. Domain-age/WHOIS data is still shown
-to the user (§11) — just kept out of the model's feature vector.
+to the user (§11) - just kept out of the model's feature vector.
 
 ## 9. ML Pipeline
 
@@ -274,7 +288,7 @@ also generated for the verdict card.
 
 ## 11. Domain Intelligence & VirusTotal (Phases 5 & 6)
 
-Both panels are **supplementary metadata, not part of the ML verdict** —
+Both panels are **supplementary metadata, not part of the ML verdict** -
 the dashboard labels them explicitly ("not part of the ML verdict" /
 "third-party opinion") so the distinction is never ambiguous.
 
@@ -297,7 +311,7 @@ Research, 15(5), 26845–26851. DOI:
 [10.48084/etasr.12015](https://doi.org/10.48084/etasr.12015) (Scopus Q2,
 CC-BY 4.0).
 
-**Why this paper:** Recent (2025), peer-reviewed, and directly on-topic —
+**Why this paper:** Recent (2025), peer-reviewed, and directly on-topic -
 it benchmarks Random Forest against Decision Tree, SVM, and XGBoost on
 lexical/host/content URL features and finds ensemble methods, especially
 Random Forest, consistently win. This project reproduces that specific,
@@ -327,13 +341,13 @@ visible in the product itself, not just in this file.
 
 1. Push this project to a GitHub repository.
 2. On [render.com](https://render.com), **New -> Blueprint**, point it at
-   your repo — it picks up `render.yaml` automatically. Or create a
+   your repo - it picks up `render.yaml` automatically. Or create a
    **New -> Web Service** manually:
    - **Build command:** `pip install -r requirements.txt && python models/train_model.py`
    - **Start command:** `gunicorn backend.app:app --bind 0.0.0.0:$PORT`
 3. Optional: set `VIRUSTOTAL_API_KEY` in the Render environment variables
    to enable the VirusTotal panel.
-4. Render's free-tier filesystem is **ephemeral** — SQLite scan history
+4. Render's free-tier filesystem is **ephemeral** - SQLite scan history
    resets on redeploy/restart. For persistent history, swap
    `database/db.py` for managed Postgres (see Future Improvements).
 
@@ -364,7 +378,7 @@ A short summary of what changed and why, for transparency:
 - **Bugs fixed:** `predict_proba` fed a raw list instead of a properly
   column-named DataFrame (sklearn warning); a `javascript:`/`data:` URL
   scheme could bypass validation because the "assume http://" fallback ran
-  *before* the scheme check — fixed by checking the raw input's scheme
+  *before* the scheme check - fixed by checking the raw input's scheme
   first (`backend/app.py::_validate_url`).
 - **Security:** added per-IP rate limiting (`Flask-Limiter`, 20 requests/
   minute on `/api/analyze`, `/api/domain-intel`, `/api/virustotal`) and
