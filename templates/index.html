@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>PhishGuard AI — URL Threat Analysis</title>
-<meta name="description" content="Research-based hybrid AI system for detecting phishing URLs, with explainable predictions." />
+<title>PhishGuard AI | URL Threat Analysis</title>
+<meta name="description" content="Analyze URL structure for phishing indicators and review the factors behind the result." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -15,19 +15,18 @@
 <body>
 
 <div class="grain"></div>
-<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
 <header class="topbar">
   <div class="topbar__mark">
     <span class="topbar__glyph">◈</span>
     <div>
       <p class="topbar__title">PhishGuard <span>AI</span></p>
-      <p class="topbar__subtitle">Hybrid URL Threat Analysis · Case File System</p>
+      <p class="topbar__subtitle">URL threat analysis</p>
     </div>
   </div>
   <div class="topbar__meta">
     <span class="dot dot--live"></span>
-    <span id="model-tag">model status loading…</span>
+    <span id="model-tag">Loading model status</span>
   </div>
 </header>
 
@@ -35,17 +34,14 @@
 
   <!-- ============ INTAKE / SCANNER ============ -->
   <section class="panel intake" aria-labelledby="intake-heading">
-    <p class="eyebrow">Exhibit intake</p>
-    <h1 id="intake-heading">Paste a URL. We'll open the case.</h1>
+    <p class="eyebrow">URL scanner</p>
+    <h1 id="intake-heading">Check a URL for phishing indicators.</h1>
     <p class="intake__lede">
-      PhishGuard AI extracts ten lexical signals directly from the URL string — no
-      page load, no third-party lookups — and runs them through a Random Forest
-      classifier trained on 11,430 labelled URLs, with every verdict explained
-      by SHAP.
+      Analyze the URL structure without loading the destination. The classifier uses 20
+      lexical features and returns a phishing risk score with feature-level explanations.
     </p>
 
     <form id="analyze-form" class="scanbar" autocomplete="off">
-      <span class="scanbar__icon">🔍</span>
       <input
         id="url-input"
         class="scanbar__input"
@@ -64,9 +60,9 @@
     <p class="scanbar__error" id="form-error" role="alert"></p>
 
     <div class="quick-tries">
-      <span>Try:</span>
+      <span>Examples:</span>
       <button class="chip" type="button" data-url="https://www.wikipedia.org/wiki/Phishing">wikipedia.org</button>
-      <button class="chip" type="button" data-url="http://paypal-secure-login.verify-account-update.com/signin">paypal-secure-login…</button>
+      <button class="chip" type="button" data-url="http://paypal-secure-login.verify-account-update.com/signin">paypal-secure-login...</button>
       <button class="chip" type="button" data-url="http://192.168.4.22/wp-admin/confirm.php">raw IP link</button>
     </div>
   </section>
@@ -78,7 +74,7 @@
       <div class="activity-stat"><div class="as-value" id="act-total">0</div><div class="as-label">Scans this session</div></div>
       <div class="activity-stat activity-stat--rose"><div class="as-value" id="act-phishing">0</div><div class="as-label">Flagged phishing</div></div>
       <div class="activity-stat activity-stat--teal"><div class="as-value" id="act-legit">0</div><div class="as-label">Looked legitimate</div></div>
-      <div class="activity-stat"><div class="as-value" id="act-last">—</div><div class="as-label">Last scan</div></div>
+      <div class="activity-stat"><div class="as-value" id="act-last">Not available</div><div class="as-label">Last scan</div></div>
     </div>
   </section>
 
@@ -98,19 +94,19 @@
       </div>
 
       <div class="verdict-panel__body">
-        <p class="eyebrow" id="case-id">Case #0000</p>
+        <p class="eyebrow" id="case-id">Scan #0000</p>
         <div class="verdict-badge" id="verdict-badge">
           <span id="verdict-text">PENDING</span>
         </div>
-        <p class="verdict-url" id="verdict-url">—</p>
+        <p class="verdict-url" id="verdict-url">Not available</p>
         <p class="verdict-confidence" id="verdict-confidence"></p>
       </div>
     </div>
 
-    <!-- Signature element: character-level URL autopsy -->
+    <!-- URL structure -->
     <div class="panel autopsy-panel">
-      <p class="eyebrow">Exhibit A — URL autopsy</p>
-      <p class="autopsy-caption">Every highlighted span below fed a signal into the model. Hover a tag to see why it mattered.</p>
+      <p class="eyebrow">URL structure</p>
+      <p class="autopsy-caption">Highlighted characters show structural patterns used by the classifier.</p>
       <div class="autopsy" id="autopsy"></div>
       <div class="autopsy-legend">
         <span><i class="swatch swatch--dot"></i>dots</span>
@@ -122,28 +118,28 @@
     </div>
 
     <div class="panel features-panel">
-      <p class="eyebrow">Exhibit B — extracted signals</p>
+      <p class="eyebrow">Extracted features</p>
       <div class="feature-grid" id="feature-grid"></div>
     </div>
 
     <div class="panel shap-panel">
-      <p class="eyebrow">Exhibit C — why the model decided this</p>
+      <p class="eyebrow">Model explanation</p>
       <p class="shap-caption">SHAP contribution per feature (positive = pushes toward phishing).</p>
       <div class="shap-list" id="shap-list"></div>
     </div>
 
     <div class="intel-row">
       <div class="panel intel-panel" id="domain-intel-panel">
-        <p class="eyebrow">Supplementary — domain intelligence <span class="not-ml-tag">not part of the ML verdict</span></p>
+        <p class="eyebrow">Domain information <span class="not-ml-tag">not used for the ML result</span></p>
         <div id="domain-intel-body" class="intel-body">
-          <p class="muted">Looking up WHOIS registration data…</p>
+          <p class="muted">Checking domain registration data</p>
         </div>
       </div>
 
       <div class="panel intel-panel" id="vt-panel" hidden>
-        <p class="eyebrow">Supplementary — VirusTotal <span class="not-ml-tag">third-party opinion</span></p>
+        <p class="eyebrow">VirusTotal results <span class="not-ml-tag">third-party data</span></p>
         <div id="vt-body" class="intel-body">
-          <p class="muted">Checking VirusTotal…</p>
+          <p class="muted">Checking VirusTotal</p>
         </div>
       </div>
     </div>
@@ -154,7 +150,7 @@
   <section class="panel history-panel">
     <div class="history-panel__head">
       <div>
-        <p class="eyebrow">Case log</p>
+        <p class="eyebrow">History</p>
         <h2>Scan history</h2>
       </div>
       <button class="ghost-btn" id="clear-history-btn" type="button">Clear log</button>
@@ -172,7 +168,7 @@
           </tr>
         </thead>
         <tbody id="history-body">
-          <tr><td colspan="6" class="empty-row">No scans yet — analyze a URL above to open the first case.</td></tr>
+          <tr><td colspan="6" class="empty-row">No scans yet. Analyze a URL above to add the first result.</td></tr>
         </tbody>
       </table>
     </div>
@@ -180,24 +176,24 @@
 
   <!-- ============ MODEL INFO ============ -->
   <section class="panel model-panel">
-    <p class="eyebrow">Model dossier</p>
+    <p class="eyebrow">Model performance</p>
     <div class="model-panel__grid" id="model-info-grid">
-      <p class="muted">Loading model metrics…</p>
+      <p class="muted">Loading model metrics</p>
     </div>
-    <p class="eyebrow" style="margin-top:22px;">Dataset statistics</p>
+    <p class="eyebrow" style="margin-top:22px;">Dataset</p>
     <div class="model-panel__grid" id="dataset-stats-grid">
-      <p class="muted">Loading dataset statistics…</p>
+      <p class="muted">Loading dataset statistics</p>
     </div>
   </section>
 
   <!-- ============ RESEARCH ============ -->
   <section class="panel research-panel">
     <button class="research-toggle" id="research-toggle" type="button" aria-expanded="false">
-      <span class="eyebrow" style="margin:0;">Research background</span>
+      <span class="eyebrow" style="margin:0;">Research</span>
       <span class="research-toggle__chevron">▾</span>
     </button>
     <div class="research-body" id="research-body" hidden>
-      <p class="muted">Loading research context…</p>
+      <p class="muted">Loading research information</p>
     </div>
   </section>
 
@@ -205,9 +201,9 @@
 
 <footer class="footer">
   <p>
-    PhishGuard AI — built on lexical URL features inspired by
-    Alzubi, Bishtawi &amp; Kassem (2025), <em>“Improving Web Security through Machine
-    Learning: A Feature-Based Methodology for Detecting Phishing URLs,”</em>
+    PhishGuard AI, built on lexical URL features inspired by
+    Alzubi, Bishtawi &amp; Kassem (2025), <em>"Improving Web Security through Machine
+    Learning: A Feature-Based Methodology for Detecting Phishing URLs,"</em>
     ETASR 15(5). Dataset: Hannousse &amp; Yahiouche (2021) benchmark URLs.
   </p>
 </footer>
