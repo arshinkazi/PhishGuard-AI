@@ -1,5 +1,5 @@
 # PhishGuard AI
-### Research-Based Hybrid AI Phishing Detection System — v2
+### Research-Based Hybrid AI Phishing Detection System - v2
 
 PhishGuard AI classifies a pasted URL as **phishing** or **legitimate** using
 a Random Forest model trained on 20 lexical (URL-string-only) features,
@@ -10,7 +10,7 @@ PBEL Cybersecurity Internship, then upgraded into a more complete,
 production-shaped v2.
 
 ![Dashboard mockup](docs/screenshots/dashboard_mockup.png)
-*(placeholder — replace with a real screenshot once you run the app locally)*
+
 
 ---
 
@@ -19,38 +19,36 @@ production-shaped v2.
 - **20-feature lexical URL analysis** — length, structure, entropy, ratios,
   token stats, TLD reputation, and more (§9), computed with zero network
   calls.
-- **Random Forest classifier** (86.5% accuracy, 0.94 ROC-AUC) benchmarked
+- **Random Forest classifier** (86.5% accuracy, 0.939 ROC-AUC) benchmarked
   against a Logistic Regression baseline (79.1% accuracy).
-- **SHAP explainability** — every prediction returns a ranked, plain-English
+- **SHAP explainability** - every prediction returns a ranked, plain-English
   list of *why*, compared against phishing-class averages from training
   (e.g. "URL length (91) exceeds the average phishing threshold (~75)").
-- **WHOIS domain intelligence** — registrar, creation/expiration dates,
-  domain age, country — shown as clearly-labelled supplementary metadata,
+- **RDAP domain intelligence** - registrar, creation/expiration dates,
+  domain age, country - shown as clearly-labelled supplementary metadata,
   never mixed into the ML score.
-- **Optional VirusTotal integration** — a second, third-party opinion when
+- **Optional VirusTotal integration** - a second, third-party opinion when
   an API key is configured; silently hidden otherwise.
-- **Research panel** — the underlying paper's title, key idea, gap, and how
+- **Research panel** - the underlying paper's title, key idea, gap, and how
   this project extends it, rendered live in the dashboard, not just in
   this README.
-- **SOC-style dashboard** — threat gauge, verdict card, "URL autopsy"
+- **SOC-style dashboard** - threat gauge, verdict card, "URL autopsy"
   character-level breakdown, recent-activity stats, scan history, model
   dossier, and dataset statistics — custom HTML/CSS/JS, no frameworks.
-- **SQLite scan history**, basic rate limiting, blocked-scheme validation,
+- **SQLite scan history** - basic rate limiting, blocked-scheme validation,
   and graceful degradation everywhere a live network call could fail.
 
 ## 2. Screenshots
 
-`docs/screenshots/dashboard_mockup.png` is a placeholder generated to match
-the actual running layout. Replace it with a real screenshot after your
-first local run — the dashboard includes:
+`docs/screenshots/dashboard_mockup.png` 
 
-1. **Exhibit intake** — the URL scan bar.
-2. **Recent activity** — session-level scan counters.
-3. **Verdict card** — risk gauge, badge, confidence, and one-line summary.
-4. **Exhibit A: URL autopsy** — annotated character breakdown.
-5. **Exhibit B: extracted signals** — all 20 feature values.
+1. **Exhibit intake** - the URL scan bar.
+2. **Recent activity** -session-level scan counters.
+3. **Verdict card** - risk gauge, badge, confidence, and one-line summary.
+4. **Exhibit A: URL autopsy** - annotated character breakdown.
+5. **Exhibit B: extracted signals** - all 20 feature values.
 6. **Exhibit C: SHAP explanation bars**.
-7. **Domain intelligence + VirusTotal** — supplementary, clearly separated.
+7. **Domain intelligence + VirusTotal** - supplementary, clearly separated.
 8. **Scan history (case log)**, **model dossier**, **dataset statistics**,
    and a collapsible **research background** panel.
 
@@ -82,7 +80,7 @@ export VIRUSTOTAL_API_KEY="your-key-here"
 ```
 
 WHOIS domain intelligence needs no key but does need outbound network
-access on your host — it degrades gracefully (shows "unavailable") in any
+access on your host - it degrades gracefully (shows "unavailable") in any
 sandboxed or offline environment.
 
 ## 4. Folder Structure
@@ -115,7 +113,7 @@ project/
 ├── utils/
 │   ├── feature_extractor.py  # 20-feature lexical URL extraction
 │   ├── explainer.py           # SHAP explainability + threshold-aware phrasing
-│   ├── domain_intel.py         # WHOIS lookup (Phase 5)
+│   ├── domain_intel.py         # RDAP/WHOIS registration lookup (Phase 5)
 │   └── virustotal.py           # Optional VirusTotal lookup (Phase 6)
 ├── Procfile / render.yaml
 ├── requirements.txt / .gitignore
@@ -125,15 +123,15 @@ project/
 ## 5. Architecture
 
 ```
-+------------------+   POST /api/analyze          +--------------------------+
++------------------+   POST /api/analyze           +--------------------------+
 |   Browser UI     |------------------------------>|   Flask backend          |
 | (templates/ +    |                               |   backend/app.py         |
 |  static/js)      |<------------------------------|                          |
 +------------------+        JSON: verdict          | 1. extract_features()    |
-       |                                            | 2. model.predict_proba   |
-       | POST /api/domain-intel                     | 3. SHAP explain()        |
-       | POST /api/virustotal        (fired after   | 4. save_scan() -> DB     |
-       |      the verdict returns,    the verdict    +------------+-------------+
+       |                                           | 2. model.predict_proba   |
+       | POST /api/domain-intel                    | 3. SHAP explain()        |
+       | POST /api/virustotal        (fired after  | 4. save_scan() -> DB     |
+       |      the verdict returns,    the verdict  +------------+-------------+
        |      non-blocking)           renders)                     |
        v                                                           v
 utils/domain_intel.py                                    models/model.pkl
@@ -153,7 +151,7 @@ datasets/phishing_dataset_raw.csv  -->  models/train_model.py  -->  models/model
                                                                             averages, dataset stats)
 ```
 
-## 6. Flowchart — single scan request
+## 6. Flowchart - single scan request
 
 ```mermaid
 flowchart TD
@@ -186,7 +184,7 @@ erDiagram
 ```
 
 Only one table is needed for this project's scope. WHOIS and VirusTotal
-results are fetched live and not persisted — they're presented as
+results are fetched live and not persisted - they're presented as
 point-in-time supplementary context, not part of the scan's permanent
 record.
 
@@ -232,7 +230,7 @@ to the user (§11) — just kept out of the model's feature vector.
 | 19 | `encoded_char_count` | Percent-encoded sequences (`%20`, etc.) |
 | 20 | `suspicious_keyword_density` | Keyword count divided by URL length |
 
-Every feature is O(len(url)) or cheaper — no DNS, WHOIS, or page fetches in
+Every feature is O(len(url)) or cheaper - no DNS, registration lookup, or page fetches in
 the model's hot path.
 
 ### Results (80/20 stratified split, 2,286 held-out test URLs)
@@ -245,14 +243,14 @@ the model's hot path.
 | F1 score | 86.3% | 78.1% |
 | ROC-AUC | **0.939** | 0.881 |
 
-Random Forest beats the linear baseline on every metric — consistent with
+Random Forest beats the linear baseline on every metric - consistent with
 the base paper's finding that ensemble methods outperform individual/linear
 classifiers. Run `python models/train_model.py` to reproduce; exact numbers
 may vary slightly run to run.
 
 Top 5 features by Random Forest importance: `max_char_repeat` (0.175),
 `digit_ratio` (0.097), `num_digits` (0.080), `longest_token_length` (0.070),
-`shannon_entropy` (0.069) — notably, four of the five top signals are new
+`shannon_entropy` (0.069) - notably, four of the five top signals are new
 in v2, which is why accuracy improved from v1's 81.3% (10 features) to
 86.5% (20 features) on the same dataset and model family.
 
@@ -269,7 +267,7 @@ e.g.:
 
 Thresholds come from `models/train_model.py`, which computes each feature's
 mean value across the training set's phishing-labelled rows and stores it
-in `metrics.json` — so "average phishing threshold" is a real, computed
+in `metrics.json` - so "average phishing threshold" is a real, computed
 number, not a hardcoded guess. A one-line `summary` field (e.g. "Flagged
 primarily due to: shannon entropy, num digits, and max char repeat.") is
 also generated for the verdict card.
@@ -282,7 +280,7 @@ the dashboard labels them explicitly ("not part of the ML verdict" /
 
 - **Domain intelligence** (`utils/domain_intel.py`) performs a live WHOIS
   lookup (registrar, creation/expiration dates, computed domain age,
-  country). Wrapped in a 6-second timeout and broad exception handling —
+  country). Uses HTTPS-based RDAP lookups with bounded timeouts and broad exception handling -
   any failure returns `{"available": false, "reason": ...}` instead of a
   500 error.
 - **VirusTotal** (`utils/virustotal.py`) is entirely optional. With no
@@ -307,7 +305,7 @@ checkable claim at smaller scale (§9).
 
 **Research gap:** The paper reports strong aggregate accuracy but gives no
 end user a way to see *why* a specific URL was flagged, and ships no
-interactive tool — a common gap across classic phishing-ML literature.
+interactive tool - a common gap across classic phishing-ML literature.
 
 **How this extends it:** PhishGuard AI implements the paper's core
 methodology (URL feature extraction into a Random Forest, benchmarked
@@ -317,11 +315,11 @@ SHAP output, and packages the whole thing as a live, deployable dashboard
 rather than an offline experiment.
 
 **Future work:** see the in-app Research panel (`/api/research-info`, also
-`docs/research.json`) — it covers deep-scan host/content features, a
+`docs/research.json`) - it covers deep-scan host/content features, a
 managed Postgres swap, a browser extension, model-drift monitoring, and
 threat-intel feed integration.
 
-*This section is also rendered live in the running app* — see the
+*This section is also rendered live in the running app* - see the
 "Research background" panel on the dashboard, so the research framing is
 visible in the product itself, not just in this file.
 
@@ -356,7 +354,7 @@ visible in the product itself, not just in this file.
 
 - **ML:** scikit-learn (RandomForestClassifier, LogisticRegression), SHAP
 - **Backend:** Flask, Flask-Limiter, SQLite, python-whois, requests
-- **Frontend:** vanilla HTML / CSS / JavaScript — no frameworks
+- **Frontend:** vanilla HTML / CSS / JavaScript - no frameworks
 - **Deployment:** Render (gunicorn WSGI server)
 
 ## 16. Audit Notes (v1 -> v2)
