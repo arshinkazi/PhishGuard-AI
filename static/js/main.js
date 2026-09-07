@@ -2,16 +2,15 @@
  * main.js
  * -------
  * Drives the PhishGuard AI dashboard: submits URLs to /api/analyze,
- * renders the verdict gauge, the "URL autopsy" character breakdown
- * (this page's signature visual), the SHAP explanation bars, domain
+ * renders the verdict gauge, the URL structure breakdown, the SHAP explanation bars, domain
  * intelligence + VirusTotal panels, the research panel, recent-activity
- * stats, the scan history table, and the model/dataset dossier.
+ * stats, the scan history table, and model/dataset metrics.
  *
- * No frameworks/libraries — vanilla JS only, per project scope.
+ * No frameworks or libraries are used, keeping the frontend in vanilla JavaScript.
  */
 
 // Populated from GET /api/lexicon at load time -- single source of truth
-// shared with backend/utils/feature_extractor.py so the "URL autopsy"
+// shared with backend/utils/feature_extractor.py so URL
 // highlighting can never drift out of sync with what the model actually sees.
 let SUSPICIOUS_KEYWORDS = [];
 
@@ -60,7 +59,6 @@ document.querySelectorAll(".chip[data-url]").forEach((btn) => {
 document.getElementById("clear-history-btn").addEventListener("click", async () => {
   await fetch("/api/history/clear", { method: "POST" });
   loadHistory();
-  toast("Scan history cleared.", "success");
 });
 
 document.getElementById("research-toggle").addEventListener("click", () => {
@@ -91,18 +89,15 @@ async function runAnalysis(url) {
     if (!res.ok) {
       const msg = data.error || "Something went wrong.";
       formError.textContent = msg;
-      toast(msg, "error");
       return;
     }
 
     renderResult(data);
     loadHistory();
     loadSupplementaryPanels(data.url);
-    toast(`Analysis complete — ${data.prediction === "phishing" ? "flagged as phishing" : "looks legitimate"}.`, data.prediction === "phishing" ? "error" : "success");
   } catch (err) {
-    const msg = "Network error — is the backend running?";
+    const msg = "Could not reach the analysis service. Please try again.";
     formError.textContent = msg;
-    toast(msg, "error");
     console.error(err);
   } finally {
     setLoading(false);
@@ -116,33 +111,19 @@ function setLoading(isLoading) {
   scanProgress.hidden = !isLoading;
 }
 
-/** Lightweight toast notification (Phase 10 polish). */
-function toast(message, kind = "success") {
-  const stack = document.getElementById("toast-stack");
-  const el = document.createElement("div");
-  el.className = `toast toast--${kind}`;
-  el.textContent = message;
-  stack.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = "0";
-    el.style.transition = "opacity 0.3s ease";
-    setTimeout(() => el.remove(), 300);
-  }, 3800);
-}
-
 function renderResult(data) {
   resultsSection.hidden = false;
 
   // --- verdict badge + gauge -------------------------------------------
   const isPhishing = data.prediction === "phishing";
-  document.getElementById("case-id").textContent = `Case #${String(data.id).padStart(4, "0")}`;
+  document.getElementById("case-id").textContent = `Scan #${String(data.id).padStart(4, "0")}`;
   document.getElementById("verdict-url").textContent = data.url;
 
   const badge = document.getElementById("verdict-badge");
   badge.className = "verdict-badge " + (isPhishing ? "verdict-badge--phishing" : "verdict-badge--legitimate");
-  document.getElementById("verdict-text").textContent = isPhishing ? "⚠ PHISHING DETECTED" : "✓ LOOKS LEGITIMATE";
+  document.getElementById("verdict-text").textContent = isPhishing ? "PHISHING DETECTED" : "LIKELY LEGITIMATE";
   document.getElementById("verdict-confidence").textContent =
-    `${data.confidence}% confidence · phishing risk score ${data.phishing_risk_score}/100 · ${data.explanation.summary}`;
+    `${data.confidence}% confidence, risk score ${data.phishing_risk_score}/100. ${data.explanation.summary}`;
 
   const gaugeValue = document.getElementById("gauge-value");
   const circumference = 364.4;
@@ -151,10 +132,10 @@ function renderResult(data) {
   gaugeValue.style.stroke = isPhishing ? "var(--rose)" : "var(--teal)";
   document.getElementById("gauge-number").textContent = `${Math.round(data.phishing_risk_score)}`;
 
-  // --- Exhibit A: URL autopsy --------------------------------------------
+  // --- URL structure --------------------------------------------
   renderAutopsy(data.url);
 
-  // --- Exhibit B: feature chips --------------------------------------------
+  // --- Extracted features --------------------------------------------
   const grid = document.getElementById("feature-grid");
   grid.innerHTML = "";
   Object.entries(data.features).forEach(([key, value]) => {
@@ -164,7 +145,7 @@ function renderResult(data) {
     grid.appendChild(chip);
   });
 
-  // --- Exhibit C: SHAP explanation bars --------------------------------------
+  // --- SHAP explanation bars --------------------------------------
   const shapList = document.getElementById("shap-list");
   shapList.innerHTML = "";
   const maxAbs = Math.max(...data.explanation.top_features.map((f) => Math.abs(f.shap_value)), 0.0001);
@@ -194,7 +175,7 @@ function formatFeatureValue(key, value) {
   return value;
 }
 
-/** Renders Exhibit A: the URL as monospace text with per-character tags. */
+/** Renders the URL with per-character structural highlighting. */
 function renderAutopsy(url) {
   const container = document.getElementById("autopsy");
   container.innerHTML = "";
@@ -231,7 +212,7 @@ function renderAutopsy(url) {
 /** Phase 5 + 6: fetch domain intelligence + VirusTotal after the ML verdict. */
 async function loadSupplementaryPanels(url) {
   const intelBody = document.getElementById("domain-intel-body");
-  intelBody.innerHTML = `<p class="muted">Looking up WHOIS registration data…</p>`;
+  intelBody.innerHTML = `<p class="muted">Checking domain registration data</p>`;
 
   fetch("/api/domain-intel", {
     method: "POST",
@@ -268,13 +249,14 @@ async function loadSupplementaryPanels(url) {
 function renderDomainIntel(d) {
   const body = document.getElementById("domain-intel-body");
   if (!d.available) {
-    body.innerHTML = `<p class="muted">${escapeHtml(d.reason || "WHOIS data unavailable for this domain.")}</p>`;
+    body.innerHTML = `<p class="muted">${escapeHtml(d.reason || "Registration data is unavailable for this domain.")}</p>`;
     return;
   }
   const ageText = d.domain_age_days != null ? `${d.domain_age_days.toLocaleString()} days` : "Unknown";
   body.innerHTML = `
+    <p class="muted intel-source">Source: ${escapeHtml(d.source || "Registration data")}</p>
     <dl>
-      <dt>Domain</dt><dd>${escapeHtml(d.hostname || "—")}</dd>
+      <dt>Domain</dt><dd>${escapeHtml(d.hostname || "Not available")}</dd>
       <dt>Registrar</dt><dd>${escapeHtml(d.registrar || "Unknown")}</dd>
       <dt>Created</dt><dd>${escapeHtml(d.creation_date || "Unknown")}</dd>
       <dt>Expires</dt><dd>${escapeHtml(d.expiration_date || "Unknown")}</dd>
@@ -303,7 +285,7 @@ async function loadHistory() {
   const body = document.getElementById("history-body");
 
   if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="6" class="empty-row">No scans yet — analyze a URL above to open the first case.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" class="empty-row">No scans yet. Analyze a URL above to add the first result.</td></tr>`;
   } else {
     body.innerHTML = rows
       .map((row) => `
@@ -312,7 +294,7 @@ async function loadHistory() {
           <td class="url-cell" title="${escapeHtml(row.url)}">${escapeHtml(row.url)}</td>
           <td><span class="badge-pill badge-pill--${row.prediction}">${row.prediction}</span></td>
           <td>${Math.round(row.confidence * 100)}%</td>
-          <td>${FEATURE_LABELS[row.top_feature] || row.top_feature || "—"}</td>
+          <td>${FEATURE_LABELS[row.top_feature] || row.top_feature || "Not available"}</td>
           <td>${row.scanned_at}</td>
         </tr>`)
       .join("");
@@ -326,7 +308,7 @@ function updateActivityStats(rows) {
   document.getElementById("act-total").textContent = rows.length;
   document.getElementById("act-phishing").textContent = rows.filter((r) => r.prediction === "phishing").length;
   document.getElementById("act-legit").textContent = rows.filter((r) => r.prediction === "legitimate").length;
-  document.getElementById("act-last").textContent = rows.length ? rows[0].scanned_at : "—";
+  document.getElementById("act-last").textContent = rows.length ? rows[0].scanned_at : "Not available";
 }
 
 function escapeHtml(str) {
@@ -351,7 +333,7 @@ async function loadModelInfo() {
   const data = await res.json();
   const rf = data.random_forest;
   const lr = data.logistic_regression;
-  tag.textContent = `RandomForest · ${(rf.accuracy * 100).toFixed(1)}% test accuracy`;
+  tag.textContent = `Random Forest | ${(rf.accuracy * 100).toFixed(1)}% test accuracy`;
 
   grid.innerHTML = `
     <div class="model-stat"><div class="ms-value">${(rf.accuracy * 100).toFixed(1)}%</div><div class="ms-label">RF accuracy</div></div>
@@ -363,10 +345,10 @@ async function loadModelInfo() {
   const stats = data.dataset_stats || {};
   dsGrid.innerHTML = `
     <div class="model-stat"><div class="ms-value">${(stats.total_urls || data.dataset_rows).toLocaleString()}</div><div class="ms-label">Training URLs</div></div>
-    <div class="model-stat"><div class="ms-value">${(stats.phishing_urls ?? "—").toLocaleString?.() ?? stats.phishing_urls}</div><div class="ms-label">Phishing URLs</div></div>
-    <div class="model-stat"><div class="ms-value">${(stats.legitimate_urls ?? "—").toLocaleString?.() ?? stats.legitimate_urls}</div><div class="ms-label">Legitimate URLs</div></div>
-    <div class="model-stat"><div class="ms-value">${stats.avg_phishing_url_length ?? "—"}</div><div class="ms-label">Avg. phishing URL length</div></div>
-    <div class="model-stat"><div class="ms-value">${stats.avg_legitimate_url_length ?? "—"}</div><div class="ms-label">Avg. legitimate URL length</div></div>
+    <div class="model-stat"><div class="ms-value">${(stats.phishing_urls ?? "Not available").toLocaleString?.() ?? stats.phishing_urls}</div><div class="ms-label">Phishing URLs</div></div>
+    <div class="model-stat"><div class="ms-value">${(stats.legitimate_urls ?? "Not available").toLocaleString?.() ?? stats.legitimate_urls}</div><div class="ms-label">Legitimate URLs</div></div>
+    <div class="model-stat"><div class="ms-value">${stats.avg_phishing_url_length ?? "Not available"}</div><div class="ms-label">Avg. phishing URL length</div></div>
+    <div class="model-stat"><div class="ms-value">${stats.avg_legitimate_url_length ?? "Not available"}</div><div class="ms-label">Avg. legitimate URL length</div></div>
   `;
 }
 
@@ -379,7 +361,7 @@ async function loadResearchInfo() {
 
     body.innerHTML = `
       <h3>${escapeHtml(d.paper.title)}</h3>
-      <p>${escapeHtml(d.paper.authors)} — <em>${escapeHtml(d.paper.venue)}</em>.
+      <p>${escapeHtml(d.paper.authors)}, <em>${escapeHtml(d.paper.venue)}</em>.
       <a href="${escapeHtml(d.paper.url)}" target="_blank" rel="noopener">DOI: ${escapeHtml(d.paper.doi)}</a></p>
 
       <h3>Key idea</h3>
@@ -406,7 +388,7 @@ async function loadLexicon() {
     const d = await res.json();
     SUSPICIOUS_KEYWORDS = d.suspicious_keywords || [];
   } catch (err) {
-    console.warn("Could not load lexicon, URL autopsy keyword highlighting disabled.", err);
+    console.warn("Could not load lexicon, URL keyword highlighting disabled.", err);
   }
 }
 
