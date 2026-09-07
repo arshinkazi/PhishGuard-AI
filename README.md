@@ -44,23 +44,27 @@ production-shaped v2.
 
 ### URL Analysis
 
-<!-- Upload as: docs/screenshots/url-analysis.png -->
+![URL Analysis](docs/screenshots/url-analysis.png)
+
+### Extracted Features
+
+![Extracted Features](docs/screenshots/extracted-features.png)
 
 ### Model Explanation
 
-<!-- Upload as: docs/screenshots/model-explanation.png -->
+![Model Explanation](docs/screenshots/model-explanation.png)
 
-### Domain Information
+### Model Performance and Research
 
-<!-- Upload as: docs/screenshots/domain-information.png -->
-
-### VirusTotal Results
-
-<!-- Upload as: docs/screenshots/virustotal-results.png -->
+![Model Performance and Research](docs/screenshots/model-performance-and-research.png)
 
 ### Scan History
 
-<!-- Upload as: docs/screenshots/scan-history.png -->
+![Scan History](docs/screenshots/scan-history.png)
+
+### Domain Information and VirusTotal
+
+![Domain Information and VirusTotal](docs/screenshots/domain-information-and-virustotal.png)
 
 ## 3. Installation Guide
 
