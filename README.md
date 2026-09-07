@@ -42,10 +42,6 @@ production-shaped v2.
 
 ## 2. Screenshots
 
-### Dashboard
-
-![PhishGuard AI dashboard](docs/screenshots/dashboard_mockup.png)
-
 ### URL Analysis
 
 <!-- Upload as: docs/screenshots/url-analysis.png -->
