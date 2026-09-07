@@ -11,7 +11,7 @@ production-shaped v2.
 
 [**Live Demo**](https://phishguard-ai-l27o.onrender.com/)
 
-![PhishGuard AI dashboard](docs/screenshots/dashboard_mockup.png)
+![PhishGuard AI dashboard](docs/screenshots/dashboard.png)
 
 
 ---
@@ -54,17 +54,17 @@ production-shaped v2.
 
 ![Model Explanation](docs/screenshots/model-explanation.png)
 
-### Model Performance and Research
+### Domain Information and VirusTotal
 
-![Model Performance and Research](docs/screenshots/model-performance-and-research.png)
+![Domain Information and VirusTotal](docs/screenshots/domain-information-and-virustotal.png)
 
 ### Scan History
 
 ![Scan History](docs/screenshots/scan-history.png)
 
-### Domain Information and VirusTotal
+### Model Performance and Research
 
-![Domain Information and VirusTotal](docs/screenshots/domain-information-and-virustotal.png)
+![Model Performance and Research](docs/screenshots/model-performance-and-research.png)
 
 ## 3. Installation Guide
 
